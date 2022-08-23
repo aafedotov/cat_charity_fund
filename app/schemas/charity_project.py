@@ -20,12 +20,12 @@ class CharityProjectUpdate(CharityProjectBase):
     pass
 
 
-class MeetingRoomDB(CharityProjectCreate):
+class CharityProjectDB(CharityProjectCreate):
     id: int
-    invested_amount: PositiveInt = 0
+    invested_amount: int = 0
     fully_invested: bool = False
     create_date: datetime = datetime.now()
-    close_date: datetime
+    close_date: datetime = None
 
     class Config:
         orm_mode = True

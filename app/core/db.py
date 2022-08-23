@@ -1,4 +1,6 @@
-from sqlalchemy import Column, Integer
+from datetime import datetime
+
+from sqlalchemy import Column, Integer, Boolean, DateTime
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import declarative_base, declared_attr, sessionmaker
 
@@ -12,7 +14,7 @@ class PreBase:
         """Автоматически именуем таблицы в БД по имени класса."""
         return cls.__name__.lower()
 
-    """Во все таблицы добавляем поле с ID."""
+    """Во все таблицы добавляем id."""
     id = Column(Integer, primary_key=True)
 
 

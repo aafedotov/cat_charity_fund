@@ -15,8 +15,8 @@ class DonationCreate(BaseModel):
 class DonationDB(DonationCreate):
     id: int
     user_id: Optional[int]
-    invested_amount: Optional[PositiveInt]
-    fully_invested: Optional[PositiveInt]
+    invested_amount: Optional[int]
+    fully_invested: Optional[bool]
     create_date: datetime = datetime.now()
     close_date: Optional[datetime]
 
