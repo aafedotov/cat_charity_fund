@@ -24,5 +24,18 @@ class CRUDDonation(CRUDBase):
         )
         return donations.scalars().all()
 
+    async def get_free_donations(
+            self,
+            session: AsyncSession
+    ) -> list[Donation]:
+        """Получение списка нераспределенных донатов."""
+
+        donations = await session.execute(
+            select(Donation).where(
+                Donation.fully_invested == False
+            )
+        )
+        return donations.scalars().all()
+
 
 donation_crud = CRUDDonation(Donation)

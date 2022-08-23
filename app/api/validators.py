@@ -22,7 +22,7 @@ async def check_project_name_duplicate(
         )
 
 
-async def check_project_exists(
+async def check_project_exists_and_opened(
         project_id: int,
         session: AsyncSession,
 ) -> CharityProject:
@@ -33,15 +33,33 @@ async def check_project_exists(
             status_code=404,
             detail='Проект не найден!'
         )
+    if charity_project.fully_invested:
+        raise HTTPException(
+            status_code=422,
+            detail='Невозможно изменить или удалить закрытый проект!'
+        )
     return charity_project
 
 
-async def check_full_amount_before_edit(
+async def check_project_is_empty(
+        project_id: int,
+        session: AsyncSession,
+) -> None:
+    """Проверяем, есть ли инвестиции в проекте."""
+    charity_project = await charity_project_crud.get(project_id, session)
+    if charity_project.invested_amount != 0:
+        raise HTTPException(
+            status_code=422,
+            detail='Невозможно удалить проект с инвестициями!'
+        )
+
+
+async def check_project_before_edit(
         project_id: int,
         new_full_amount: int,
         session: AsyncSession,
 ) -> CharityProject:
-    """Проверяем новую целевую сумму (не менее текущих донатов на проект)."""
+    """Проверяем новую целевую сумму."""
     charity_project = await charity_project_crud.get(project_id, session)
     if new_full_amount < charity_project.invested_amount:
         raise HTTPException(
