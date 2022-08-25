@@ -94,9 +94,9 @@ async def project_processing(
             to_invest = 0
             break
     if to_invest != 0:
-        charity_project.invested_amount = (
-                charity_project.full_amount - to_invest
-        )
+        charity_project.invested_amount = (charity_project.full_amount -
+                                           to_invest
+                                           )
         session.add(charity_project)
     await session.commit()
     await session.refresh(charity_project)

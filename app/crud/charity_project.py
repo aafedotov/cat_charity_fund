@@ -2,6 +2,7 @@ from typing import Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql.expression import false
 
 from app.crud.base import CRUDBase
 from app.models.charity_project import CharityProject
@@ -31,7 +32,7 @@ class CRUDCharityProject(CRUDBase):
 
         free_projects = await session.execute(
             select(CharityProject).where(
-                CharityProject.fully_invested == False
+                CharityProject.fully_invested == false()
             ).order_by(CharityProject.create_date)
         )
         return free_projects.scalars().all()

@@ -1,5 +1,6 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql.expression import false
 
 from app.crud.base import CRUDBase
 from app.models import User
@@ -30,7 +31,7 @@ class CRUDDonation(CRUDBase):
 
         donations = await session.execute(
             select(Donation).where(
-                Donation.fully_invested == False
+                Donation.fully_invested == false()
             )
         )
         return donations.scalars().all()
