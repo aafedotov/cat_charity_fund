@@ -27,6 +27,7 @@ def get_jwt_strategy() -> JWTStrategy:
     """Генерация JWT токенов по secret из ENV."""
     return JWTStrategy(secret=settings.secret, lifetime_seconds=3600)
 
+
 auth_backend = AuthenticationBackend(
     name='jwt',
     transport=bearer_transport,
