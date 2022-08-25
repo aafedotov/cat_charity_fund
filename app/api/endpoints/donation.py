@@ -1,17 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException
-
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import get_async_session
-from app.models.user import User
-from app.crud.donation import donation_crud
-from app.schemas.donation import DonationCreate, DonationDB
 from app.core.user import current_superuser, current_user
-from app.api.validators import (
-    check_project_name_duplicate,
-    check_project_exists,
-    check_full_amount_before_edit,
-)
+from app.crud.donation import donation_crud
+from app.models.user import User
+from app.schemas.donation import DonationCreate, DonationDB
+from app.services.investment import donation_processing
 
 router = APIRouter()
 
@@ -23,15 +18,17 @@ router = APIRouter()
         'user_id',
         'invested_amount',
         'fully_invested',
-        'close_date'
+        'close_date',
     },
+    response_model_exclude_none=True
 )
 async def create_donation(
-        reservation: DonationCreate,
+        donation: DonationCreate,
         session: AsyncSession = Depends(get_async_session),
         user: User = Depends(current_user),
 ):
-    new_donation = await donation_crud.create(reservation, session, user)
+    new_donation = await donation_crud.create(donation, session, user)
+    new_donation = await donation_processing(new_donation.id, session)
     return new_donation
 
 
@@ -39,6 +36,7 @@ async def create_donation(
     '/',
     response_model=list[DonationDB],
     dependencies=[Depends(current_superuser)],
+    response_model_exclude_none=True
 )
 async def get_all_donations(
         session: AsyncSession = Depends(get_async_session),

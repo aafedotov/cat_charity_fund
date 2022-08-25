@@ -1,19 +1,65 @@
 from datetime import datetime
 
-from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.charity_project import charity_project_crud
 from app.crud.donation import donation_crud
-from app.models import User, CharityProject, Donation
+from app.schemas.charity_project import CharityProjectDB
+from app.schemas.donation import DonationDB
+
+
+async def donation_processing(
+        donation_id: int,
+        session: AsyncSession
+) -> DonationDB:
+    """Процессинг инвестиций при добавлении нового доната."""
+
+    free_projects = await charity_project_crud.get_projects_to_invest(session)
+    donation = await donation_crud.get(donation_id, session)
+    to_donate = donation.full_amount
+    for project in free_projects:
+        to_invest = project.full_amount - project.invested_amount
+        if to_donate < to_invest:
+            project.invested_amount += to_donate
+            donation.invested_amount = donation.full_amount
+            donation.fully_invested = True
+            donation.close_date = datetime.now()
+            to_donate = 0
+            session.add(project)
+            session.add(donation)
+            break
+        if to_donate == to_invest:
+            project.invested_amount = project.full_amount
+            donation.invested_amount = donation.full_amount
+            donation.fully_invested = True
+            project.fully_invested = True
+            donation.close_date = datetime.now()
+            project.close_date = datetime.now()
+            to_donate = 0
+            session.add(project)
+            session.add(donation)
+            break
+        if to_donate > to_invest:
+            to_donate -= to_invest
+            project.invested_amount = project.full_amount
+            project.fully_invested = True
+            project.close_date = datetime.now()
+            session.add(project)
+    if to_donate != 0:
+        donation.invested_amount = donation.full_amount - to_donate
+        session.add(donation)
+    await session.commit()
+    await session.refresh(donation)
+    return donation
 
 
 async def project_processing(
-        charity_project: CharityProject,
+        project_id: int,
         session: AsyncSession
-) -> CharityProject:
+) -> CharityProjectDB:
     """Процессинг инвестиций при додавлении или изменении проектов."""
 
+    charity_project = await charity_project_crud.get(project_id, session)
     free_donations = await donation_crud.get_free_donations(session)
     to_invest = charity_project.full_amount - charity_project.invested_amount
     if to_invest == 0:
@@ -55,5 +101,3 @@ async def project_processing(
     await session.commit()
     await session.refresh(charity_project)
     return charity_project
-
-

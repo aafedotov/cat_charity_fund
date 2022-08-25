@@ -1,10 +1,8 @@
-from datetime import datetime
-
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.charity_project import charity_project_crud
-from app.models import User, CharityProject
+from app.models import CharityProject
 
 
 async def check_project_name_duplicate(
@@ -17,7 +15,7 @@ async def check_project_name_duplicate(
     )
     if project_id is not None:
         raise HTTPException(
-            status_code=422,
+            status_code=400,
             detail='Проект с таким именем уже существует!',
         )
 
@@ -25,6 +23,7 @@ async def check_project_name_duplicate(
 async def check_project_exists_and_opened(
         project_id: int,
         session: AsyncSession,
+        from_delete: bool = False
 ) -> CharityProject:
     """Проверяем, существует ли проект в БД."""
     charity_project = await charity_project_crud.get(project_id, session)
@@ -34,9 +33,12 @@ async def check_project_exists_and_opened(
             detail='Проект не найден!'
         )
     if charity_project.fully_invested:
+        detail = 'Закрытый проект нельзя редактировать!'
+        if from_delete:
+            detail = 'В проект были внесены средства, не подлежит удалению!'
         raise HTTPException(
-            status_code=422,
-            detail='Невозможно изменить или удалить закрытый проект!'
+            status_code=400,
+            detail=detail
         )
     return charity_project
 
@@ -49,8 +51,8 @@ async def check_project_is_empty(
     charity_project = await charity_project_crud.get(project_id, session)
     if charity_project.invested_amount != 0:
         raise HTTPException(
-            status_code=422,
-            detail='Невозможно удалить проект с инвестициями!'
+            status_code=400,
+            detail='В проект были внесены средства, не подлежит удалению!'
         )
 
 
@@ -67,34 +69,3 @@ async def check_project_before_edit(
             detail='Новая сумма не может быть меньше уже внесенных средств!'
         )
     return charity_project
-
-#
-#
-# async def check_reservation_intersections(**kwargs) -> None:
-#     reservations = await crud_reservation.get_reservations_at_the_same_time(
-#         **kwargs
-#     )
-#     if reservations:
-#         raise HTTPException(
-#             status_code=422,
-#             detail=str(reservations)
-#         )
-#
-#
-# async def check_reservation_before_edit(
-#         reservation_id: int,
-#         session: AsyncSession,
-#         user: User,
-# ) -> Reservation:
-#     reservation = await crud_reservation.get(reservation_id, session)
-#     if reservation is None:
-#         raise HTTPException(
-#             status_code=404,
-#             detail='Бронь не найдена!'
-#         )
-#     if not user.is_superuser and reservation.user_id != user.id:
-#         raise HTTPException(
-#             status_code=403,
-#             detail='Невозможно редактировать или удалить чужую бронь!'
-#         )
-#     return reservation

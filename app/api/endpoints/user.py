@@ -30,7 +30,6 @@ router.include_router(
 def delete_user(id: str):
     """Не используйте удаление, деактивируйте пользователей."""
     raise HTTPException(
-        # 405 ошибка - метод не разрешен.
         status_code=405,
         detail="Удаление пользователей запрещено!"
     )

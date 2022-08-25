@@ -1,7 +1,7 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, root_validator, validator, Extra, Field, PositiveInt
+from pydantic import BaseModel, Extra, PositiveInt
 
 
 class DonationCreate(BaseModel):
@@ -17,7 +17,7 @@ class DonationDB(DonationCreate):
     user_id: Optional[int]
     invested_amount: Optional[int]
     fully_invested: Optional[bool]
-    create_date: datetime = datetime.now()
+    create_date: Optional[datetime]
     close_date: Optional[datetime]
 
     class Config:

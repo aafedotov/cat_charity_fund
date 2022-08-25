@@ -1,5 +1,3 @@
-from typing import Optional
-
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -20,7 +18,7 @@ class CRUDDonation(CRUDBase):
         donations = await session.execute(
             select(Donation).where(
                 Donation.user_id == user.id
-            )
+            ).order_by(Donation.create_date)
         )
         return donations.scalars().all()
 

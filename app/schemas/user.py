@@ -1,5 +1,3 @@
-# схемы для дефолтной модели пользователя
-
 from fastapi_users import schemas
 
 
